@@ -1,0 +1,28 @@
+# Ignore all log files
+*.log
+
+# Ignore all temporary files
+*~
+*.swp
+
+# Ignore build artifacts
+/build/
+/dist/
+target/
+
+# Ignore OS-specific files
+.DS_Store # macOS
+Thumbs.db # Windows
+
+# Ignore IDE specific files (e.g., VS Code, JetBrains)
+.vscode/
+.idea/
+*.suo
+*.user
+*.opts
+
+# Ignore dependencies directory
+node_modules/
+
+# Ignore environment variables file
+.env
