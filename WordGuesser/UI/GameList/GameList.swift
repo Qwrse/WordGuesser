@@ -59,15 +59,16 @@ struct GameList: View {
     
     // MARK: - Body
     var body: some View {
+        let sortedGames = games.sorted()
         List(selection: $selection) {
-            ForEach(games.sorted()) { game in
+            ForEach(sortedGames) { game in
                 NavigationLink(value: game) {
                     GameSummary(game: game)
                 }
             }
             .onDelete { offsets in
                 for offset in offsets {
-                    modelContext.delete(games[offset])
+                    modelContext.delete(sortedGames[offset])
                 }
             }
         }
