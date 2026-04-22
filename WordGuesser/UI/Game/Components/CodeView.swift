@@ -45,7 +45,7 @@ struct CodeView: View {
                     .overlay {
                         preferences.pegShape.shape
                             .foregroundStyle(code.isHidden ? Color.gray : .clear)
-                            .opacity(0.5)
+                            .opacity(1)
                             .padding(Hiding.border)
                     }
                     .onTapGesture {
