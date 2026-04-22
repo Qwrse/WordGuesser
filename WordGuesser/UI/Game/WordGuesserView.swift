@@ -22,17 +22,11 @@ struct WordGuesserView: View {
     @State private var selectedPegIndex = 0
     /// The text checker used to validate guessed words.
     @State private var wordChecker = UITextChecker()
-    /// A Boolean value that indicates whether the length chooser is shown.
-    @State private var isChoosingNewGameLength = false
     
     // MARK: - Body
     var body: some View {
         VStack {
-            if isChoosingNewGameLength {
-                lengthChooser
-            } else {
-                gameView
-            }
+            gameView
         }
         .padding()
         .onChange(of: words.count, initial: true) {
@@ -93,20 +87,6 @@ struct WordGuesserView: View {
                     if game.attemptGuess() {
                         selectedPegIndex = 0
                     }
-                }
-            }
-        }
-    }
-    
-    /// A control that lets the player start a new game with a new length.
-    var lengthChooser: some View {
-        HStack(spacing: 16) {
-            Text("Choose length of words:")
-            ForEach(3...6, id: \.self) { length in
-                Button("\(length)") {
-                    isChoosingNewGameLength = false
-                    game.selectLength(length)
-                    selectedPegIndex = 0
                 }
             }
         }
