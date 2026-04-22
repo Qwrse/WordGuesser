@@ -4,12 +4,12 @@ The project was made as a final project on the [Stanford 193p course](https://cs
 
 ## Overview
 
-<img width="295" height="640" alt="Simulator Screen Recording - iPhone 17 Pro - 2026-04-22 at 09 16 54" src="https://github.com/user-attachments/assets/ca9d40a2-8769-44f4-b44f-9308d7dcd94c" />
-
 WordGuesser is a small iOS app built with SwiftUI for playing a word guessing game.
 The app loads common English words from [Stanford CS193p word list](https://web.stanford.edu/class/cs193p/common.words) and uses them as secret words for the game, so some features may not work correctly without internet access.
 
 The current project target supports iPhone and iPad.
+
+<img width="295" height="640" alt="Simulator Screen Recording - iPhone 17 Pro - 2026-04-22 at 09 16 54" src="https://github.com/user-attachments/assets/ca9d40a2-8769-44f4-b44f-9308d7dcd94c" />
 
 ## Features
 
