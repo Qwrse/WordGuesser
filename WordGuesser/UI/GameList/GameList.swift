@@ -134,10 +134,6 @@ struct GameList: View {
     /// Inserts sample games when the store is empty.
     func insertSampleGamesIfNeeded() {
         let fetchDescriptor = FetchDescriptor<WordGuesser>()
-        if let result = try? modelContext.fetchCount(fetchDescriptor) {
-            print("result: \(result)")
-            print(games)
-        }
         if let result = try? modelContext.fetchCount(fetchDescriptor), result == 0 {
             print("add samples")
             for i in 3...5 {
