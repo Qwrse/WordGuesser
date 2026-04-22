@@ -126,9 +126,9 @@ struct GameList: View {
         NavigationLink {
             AppSettings()
         } label: {
-            Button("Settings", systemImage: "gear") {
-            }
+            Label("Settings", systemImage: "gear")
         }
+
     }
     
     /// Inserts sample games when the store is empty.
