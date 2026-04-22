@@ -30,7 +30,8 @@ extension Color {
     
     /// Returns a normalized component extracted from `value` at `index`.
     static func component(from value: Int64, at index: Int) -> Double {
-        let byteValue = (value >> (index * 16)) & 0xff
+        let shift = (3 - index) * 8
+        let byteValue = (value >> shift) & 0xff
         return Double(byteValue) / 255
     }
     
@@ -45,8 +46,8 @@ extension Color {
             return nil
         }
         let r = Color.component(from: value, at: 0)
-        let b = Color.component(from: value, at: 1)
-        let g = Color.component(from: value, at: 2)
+        let g = Color.component(from: value, at: 1)
+        let b = Color.component(from: value, at: 2)
         let a = Color.component(from: value, at: 3)
         self.init(red: r, green: g, blue: b, opacity: a)
     }
