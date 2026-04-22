@@ -19,7 +19,7 @@ The current project target supports iPhone and iPad.
 - Track attempts, last attempt preview, and elapsed play time
 - Validate guesses as real English words
 - Get exact, inexact, and no-match feedback for each letter
-- Restart a game and select a new word length
+- Restart a game
 - Customize match colors and shape in the settings
 - Persist the games with SwiftData
 - Persist UI preferences with `UserDefaults`
