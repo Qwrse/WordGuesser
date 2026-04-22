@@ -7,10 +7,10 @@
 
 import SwiftUI
 
+/// A diamond-shaped `Shape`.
 struct Diamond: Shape {
-    /// The rotated symmetrical quadrilateral.
+    /// Returns a path that draws the diamond inside `rect`.
     func path(in rect: CGRect) -> Path {
-        /// The path to build the quadrilateral.
         var path = Path()
         let top = CGPoint(x: rect.midX, y: rect.minY)
         let right = CGPoint(x: rect.maxX, y: rect.midY)

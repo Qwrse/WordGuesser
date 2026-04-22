@@ -7,35 +7,35 @@
 
 import SwiftUI
 
-/// The keyboard with `Pegs`.
-struct KeyBoard: View {
+/// A keyboard view for choosing pegs and submitting guesses.
+struct Keyboard: View {
     // MARK: Data In
-    /// `Pegs` to choose and their the best `match` score.
+    /// The pegs to display together with their best known match.
     let choices: [(peg: Peg, bestMatch: Match?)]
     
     // MARK: Data Out Function
-    /// The action which calls on choose.
+    /// The action called when the player chooses a peg.
     var onChoose: ((Peg) -> Void)?
-    /// The action which calls when removes selected `peg`.
+    /// The action called when the player removes a peg.
     var onRemoveSelected: (() -> Void)?
-    /// The action which calls on guess.
+    /// The action called when the player submits a guess.
     var onGuess: (() -> Void)?
 
     // MARK: - Body
     var body: some View {
         let charactersPerRow = [10, 9, 7]
-        let offsetPerRow = [0, 10, 19]
-        VStack(spacing: KeyBoardShape.rowsSpacing) {
-            ForEach(charactersPerRow.indices, id: \.self) { rowIndex in  // keyboard row
+        let rowOffsets = [0, 10, 19]
+        VStack(spacing: KeyboardLayout.rowSpacing) {
+            ForEach(charactersPerRow.indices, id: \.self) { rowIndex in
                 let rowLength = charactersPerRow[rowIndex]
                 HStack {
-                    ForEach(0..<rowLength, id: \.self) { columnIndex in  // keyboard letter
-                        let offset = offsetPerRow[rowIndex] + columnIndex
+                    ForEach(0..<rowLength, id: \.self) { columnIndex in
+                        let offset = rowOffsets[rowIndex] + columnIndex
                         let (peg, bestMatch) = choices[offset]
                         letterView(peg, bestMatch: bestMatch)
                     }
                     if rowIndex == 1 {
-                        backSpaceButton
+                        backspaceButton
                     }
                     if rowIndex == 2 {
                         guessButton
@@ -47,7 +47,7 @@ struct KeyBoard: View {
         .padding(.horizontal)
     }
     
-    /// Returns `Peg` view in keyboard.
+    /// Returns a button for `peg`.
     func letterView(_ peg: Peg, bestMatch: Match?) -> some View {
         Button {
             onChoose?(peg)
@@ -55,56 +55,52 @@ struct KeyBoard: View {
             Text(peg)
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
         }
-        .aspectRatio(LetterShape.aspectRatio, contentMode: .fit)
+        .aspectRatio(KeyLayout.aspectRatio, contentMode: .fit)
         .background {
             Circle()
-                .foregroundStyle(bestMatch?.associatedColor ?? .clear)
+                .foregroundStyle(bestMatch?.color ?? .clear)
         }
     }
     
-    /// The button which removes last symbol.
-    ///
-    /// The last button in the second line in keyboard.
-    var backSpaceButton: some View {
+    /// A button that removes the selected peg.
+    var backspaceButton: some View {
         Button {
             onRemoveSelected?()
         } label: {
             Image(systemName: "delete.backward")
         }
-        .padding(.leading, LetterShape.ancillaryPadding)
+        .padding(.leading, KeyLayout.ancillaryPadding)
     }
     
-    /// The guess button.
-    ///
-    /// The last button in the third line in keyboard.
+    /// A button that submits the current guess.
     var guessButton: some View {
         Button {
             onGuess?()
         } label: {
             Text("GUESS")
         }
-        .padding(.leading, LetterShape.ancillaryPadding)
+        .padding(.leading, KeyLayout.ancillaryPadding)
     }
     
-    /// Settings for letter shape layout.
-    struct LetterShape {
-        /// The aspect ratio for every letter.
+    /// Layout metrics for letter keys.
+    struct KeyLayout {
+        /// The aspect ratio for each key.
         static let aspectRatio: CGFloat = 1
-        /// The padding around every letter.
+        /// The padding around each key.
         static let padding: CGFloat = 8
-        /// The padding on `guessButton` and `backSpaceButton` on the left edge.
+        /// The leading padding for action keys.
         static let ancillaryPadding: CGFloat = 4
     }
     
-    /// Settings for keyboard shape layout.
-    struct KeyBoardShape {
-        /// The spacing between rows in the keyboard.
-        static let rowsSpacing: CGFloat = 8
+    /// Layout metrics for the keyboard.
+    struct KeyboardLayout {
+        /// The spacing between rows.
+        static let rowSpacing: CGFloat = 8
     }
 }
 
 
 #Preview {
     let game = WordGuesser()
-    KeyBoard(choices: game.choices)
+    Keyboard(choices: game.choices)
 }

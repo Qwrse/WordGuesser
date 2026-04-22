@@ -7,31 +7,28 @@
 
 import SwiftUI
 
-/// The word guesser view.
+/// A view that presents a playable WordGuesser game.
 struct WordGuesserView: View {
     // MARK: Data In
-    /// The `Words` which was fetched.
-    @Environment(\.words) var words
+    /// The shared word store.
+    @Environment(\.words) private var words
     
     // MARK: Data Shared with Me
-    /// The WordGuesser model.
+    /// The game being played.
     let game: WordGuesser
     
     // MARK: Data Owned by Me
-    /// The current selected `Peg`.
-    @State private var selection: Int = 0
-    /// English words checker.
-    @State private var checker = UITextChecker()
-    /// Whether new game is starting.
-    ///
-    /// Can sets to `true` when `WordGuesserView` is restarting.
-    @State private var isStartingNewGame: Bool = false
+    /// The selected peg index in the current guess.
+    @State private var selectedPegIndex = 0
+    /// The text checker used to validate guessed words.
+    @State private var wordChecker = UITextChecker()
+    /// A Boolean value that indicates whether the length chooser is shown.
+    @State private var isChoosingNewGameLength = false
     
     // MARK: - Body
-    
     var body: some View {
         VStack {
-            if isStartingNewGame {
+            if isChoosingNewGameLength {
                 lengthChooser
             } else {
                 gameView
@@ -51,101 +48,98 @@ struct WordGuesserView: View {
         .onDisappear(perform: game.finish)
     }
     
-    /// The `game` view.
-    ///
-    /// Draws the game while it is not restarting.
+    /// The main game content.
     var gameView: some View {
         Group {
             Timer(game: game)
             codes
             restartButton
             if !game.isOver {
-                keyBoardView
+                keyboardView
             }
         }
     }
     
-    /// The `game.masterCode`, `game.guess` and `game.attempts` view.
-    ///
-    /// The view draws all codes in the `game`.
+    /// The stack of master, current, and attempted codes.
     var codes: some View {
         Group {
-            view(for: game.masterCode)
+            codeView(for: game.masterCode)
             ScrollView {
                 if !game.isOver {
-                    view(for: game.guess)
+                    codeView(for: game.guess)
                 }
                 ForEach(game.attempts) { attempt in
-                    view(for: attempt)
+                    codeView(for: attempt)
                 }
             }
         }
     }
     
-    /// The `KeyBoard` view.
-    var keyBoardView: some View {
-        KeyBoard(choices: game.choices) { peg in
+    /// The keyboard used to edit and submit guesses.
+    var keyboardView: some View {
+        Keyboard(choices: game.choices) { peg in
             withAnimation {
-                game.setGuessPeg(peg, at: selection)
-                selection = (selection + 1) % game.codeLength
+                game.setGuessPeg(peg, at: selectedPegIndex)
+                selectedPegIndex = (selectedPegIndex + 1) % game.codeLength
             }
         } onRemoveSelected: {
             withAnimation {
-                game.guess.pegs[selection] = Code.missingPeg
-                selection = (selection - 1 + game.codeLength) % game.codeLength
+                game.guess.pegs[selectedPegIndex] = Code.missingPeg
+                selectedPegIndex = (selectedPegIndex - 1 + game.codeLength) % game.codeLength
             }
         } onGuess: {
             withAnimation(.guess) {
-                if checker.isAWord(game.guess.word) {
+                if wordChecker.isWord(game.guess.word) {
                     if game.attemptGuess() {
-                        selection = 0
+                        selectedPegIndex = 0
                     }
                 }
             }
         }
     }
     
-    /// Draws the length chooser.
-    ///
-    /// The user can choose what length of `game.codeLength` it would play.
+    /// A control that lets the player start a new game with a new length.
     var lengthChooser: some View {
         HStack(spacing: 16) {
             Text("Choose length of words:")
             ForEach(3...6, id: \.self) { length in
                 Button("\(length)") {
-                    isStartingNewGame = false
+                    isChoosingNewGameLength = false
                     game.selectLength(length)
-                    selection = 0
+                    selectedPegIndex = 0
                 }
             }
         }
     }
         
-    /// The restart button.
+    /// A button that restarts the current game.
     var restartButton: some View {
         Button("Restart", systemImage: "arrow.circlepath") {
             withAnimation {
                 game.restart()
-                selection = 0
+                selectedPegIndex = 0
             }
         }
     }
     
-    /// The view for `Code` and `guessButton`.
-    func view(for code: Code) -> some View {
-        CodeView(code: code, selection: $selection)
+    /// Returns a code view for `code`.
+    func codeView(for code: Code) -> some View {
+        CodeView(code: code, selection: $selectedPegIndex)
     }
 }
 
 extension Animation {
+    /// The animation used when submitting a guess.
     static let guess = Animation.bouncy
 }
 
 extension Color {
+    /// Returns a neutral gray color with `brightness`.
     static func gray(_ brightness: CGFloat) -> Color {
         return Color(hue: 148/360, saturation: 0, brightness: brightness)
     }
     
+    /// The fill color used to highlight the selected peg.
     static let graySelection = gray(0.85)
 }
 

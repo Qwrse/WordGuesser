@@ -7,14 +7,13 @@
 
 import SwiftUI
 
-/// The `View` draws summarisation of `WordGuesser` game.
+/// A view that summarizes a saved game.
 struct GameSummary: View {
     // MARK: Data In
-    /// The `game` to summarise.
+    /// The game to summarize.
     let game: WordGuesser
     
-    // MARK: - body
-
+    // MARK: - Body
     var body: some View {
         VStack(alignment: .leading) {
             Text("Words length: \(game.codeLength)")
@@ -25,14 +24,14 @@ struct GameSummary: View {
                 Text("Last attempt:")
                 CodeView(code: lastTry)
                     .aspectRatio(CGFloat(game.codeLength), contentMode: .fit)
-                    .frame(maxHeight: LastTry.maxHeight)
+                    .frame(maxHeight: LastAttemptLayout.maxHeight)
             }
         }
     }
     
-    /// The settings for layout of last attempt.
-    struct LastTry {
-        /// The maximum height for `Code` preview.
+    /// Layout values for the last-attempt preview.
+    struct LastAttemptLayout {
+        /// The maximum preview height.
         static let maxHeight: CGFloat = 40
     }
 }

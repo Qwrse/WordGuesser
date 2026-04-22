@@ -7,15 +7,15 @@
 
 import SwiftUI
 
-/// The timer draws how long user has played the game.
+/// A view that displays the elapsed play time for a game.
 struct Timer: View {
     // MARK: Data In
-    /// The game model.
+    /// The game to time.
     let game: WordGuesser
     
     // MARK: - Body
     var body: some View {
-        ElapsedTime(startTime: game.startTime, endTime: game.endTime, timeSpent: game.elapsedTime)
+        ElapsedTime(startTime: game.startTime, endTime: game.endTime, elapsedTime: game.elapsedTime)
             .monospaced()
     }
 }

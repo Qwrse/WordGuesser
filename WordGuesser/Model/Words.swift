@@ -7,23 +7,23 @@
 
 import SwiftUI
 
-/// Extends environment for `Words`.
+/// Environment access to the shared word store.
 extension EnvironmentValues {
-    /// `Words` fetcher.
+    /// The shared word store.
     @Entry var words = Words.shared
 }
 
-/// The fetcher words by url.
+/// A store that loads valid words by length.
 @Observable
 class Words {
-    /// The words storage. Access `Set` of words by length.
+    /// The loaded words keyed by word length.
     private var words = Dictionary<Int, Set<String>>()
 
-    /// The unique instance of `Words`.
+    /// The shared word store.
     static let shared =
         Words(from: URL(string: "https://web.stanford.edu/class/cs193p/common.words"))
 
-    /// Creates fetcher `from` `url`.
+    /// Creates a word store that loads from `url`.
     private init(from url: URL? = nil) {
         words[3]?.insert("KEY")
         words[4]?.insert("MOON")
@@ -47,17 +47,17 @@ class Words {
         }
     }
     
-    /// Access total number of words.
+    /// The total number of loaded words.
     var count: Int {
         words.values.reduce(0) { $0 + $1.count }
     }
     
-    /// Returns `true` if `word` exists; `false` otherwise.
+    /// Returns a Boolean value that indicates whether `word` exists.
     func contains(_ word: String) -> Bool {
         words[word.count]?.contains(word.uppercased()) == true
     }
 
-    /// Returns random word given `length` from storage.
+    /// Returns a random word with `length`.
     func random(length: Int) -> String? {
         let word = words[length]?.randomElement()
         if word == nil {
@@ -68,8 +68,8 @@ class Words {
 }
 
 extension UITextChecker {
-    /// Returns true if `word` is a correct English word.
-    func isAWord(_ word: String) -> Bool {
+    /// Returns a Boolean value that indicates whether `word` is an English word.
+    func isWord(_ word: String) -> Bool {
         rangeOfMisspelledWord(
             in: word,
             range: NSRange(location: 0, length: word.utf16.count),

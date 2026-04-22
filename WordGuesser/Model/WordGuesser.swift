@@ -8,61 +8,42 @@
 import Foundation
 import SwiftData
 
-/// One element from `Code`, usually a character.
+/// A single code element, typically one character.
 typealias Peg = String
 
-/// Word guesser game model.
-///
-/// Secret code is a valid English word. All attempts must too be valid English words.
+/// A persisted WordGuesser game state.
 @Model class WordGuesser {
-    /// The secret `Code`.
+    /// The secret code.
     @Relationship(deleteRule: .cascade) var masterCode: Code
-    /// The current attempt.
+    /// The editable current guess.
     @Relationship(deleteRule: .cascade) var guess: Code
-    /// The previous attempts.
+    /// The stored attempts in persistence order.
     @Relationship(deleteRule: .cascade) var _attempts: [Code] = []
-    /// The last attempt time.
+    /// The date of the most recent attempt.
     var lastAttemptTime: Date?
-    /// The possible elements of `Code`.
+    /// The allowed peg values.
     var pegChoices: [Peg]
-    /// The amount of time user has played the game excluding last session.
+    /// The accumulated play time excluding the active session.
     var elapsedTime: TimeInterval = 0
-    /// The start time of last session.
-    ///
-    /// Set start time on view appear to represent an interval user has played the game.
-    ///
-    /// The start time can be `nil` in two cases:
-    /// - Game hasn't ever started.
-    /// - Game is paused.
+    /// The start date of the active session, if any.
     @Transient var startTime: Date?
-    /// The end time of last session.
-    ///
-    /// The end time can `nil` in three cases:
-    /// - Game hasn't ever started.
-    /// - Game is started but isn't over.
-    /// - Game is paused.
+    /// The end date of the last completed session, if any.
     var endTime: Date?
-    /// The `true` if master code was guessed; `false` otherwise.
+    /// A Boolean value that indicates whether the game is over.
     var isOver: Bool = false
     
-    /// Access all attempts in sorted order.
-    ///
-    /// Attempts are sorted by timestamp.
+    /// The attempts sorted by most recent first.
     var attempts: [Code] {
         get { _attempts.sorted { $0.timestamp > $1.timestamp } }
         set { _attempts = newValue }
     }
 
-    /// Access all english characters in keyboard order.
+    /// English letters in keyboard order.
     static var englishCharacters: [Peg] {
         "QWERTYUIOPASDFGHJKLZXCVBNM".map { String($0) }
     }
         
-    /// Creates `WordGuesser` game with peg choices and code length.
-    ///
-    /// Arguments:
-    /// - pegChoices are symbols which can be used in codes.
-    /// - codeLength is the length for each code in the game.
+    /// Creates a game with `pegChoices` and `codeLength`.
     init(pegChoices: [Peg] = englishCharacters, codeLength: Int = 4) {
         self.pegChoices = pegChoices
         let masterCode = Code(kind: .master(isHidden: true), length: codeLength)
@@ -71,21 +52,18 @@ typealias Peg = String
         guess = Code(kind: .guess, length: codeLength)
     }
     
-    /// Access number of `pegs` in `masterCode`.
+    /// The number of pegs in each code.
     var codeLength: Int {
         masterCode.pegs.count
     }
     
-    /// Access the best `Match` for every `Peg`.
-    ///
-    /// Returns `(peg, nil)` if there wasn't attempt for this `peg`.
-    /// Time complexity O(attempts.size * pegChoices.size).
+    /// The best known match status for each available peg.
     var choices: [(peg: Peg, bestMatch: Match?)] {
-        var bestMatches: [Peg:Match] = [:]
+        var bestMatches: [Peg: Match] = [:]
         attempts.forEach { attempt in
             if let matches = attempt.matches {
                 zip(attempt.pegs, matches).forEach { (peg, match) in
-                    bestMatches[peg] = Match.bestMatch(match, bestMatches[peg])
+                    bestMatches[peg] = Match.best(of: match, and: bestMatches[peg])
                 }
             }
         }
@@ -94,23 +72,17 @@ typealias Peg = String
         }
     }
     
-    /// Access last attempt if there is any;
-    /// access `nil` otherwise.
+    /// The most recent attempt, if any.
     var lastAttempt: Code? {
         attempts.first
     }
     
-    /// Restarts the game.
-    ///
-    /// Randomises `masterCode`; removes `attempts`; and clear `guess`.
+    /// Restarts the game using the current code length.
     func restart() {
         selectLength(masterCode.pegs.count)
     }
     
-    /// Selects code length and restarts the game.
-    ///
-    /// Randomises `masterCode`; removes `attempts`; and clear `guess`.
-    /// - See `restart`.
+    /// Restarts the game with a new code length.
     func selectLength(_ length: Int) {
         masterCode = Code(kind: .master(isHidden: true), length: length)
         masterCode.randomize(from: pegChoices)
@@ -121,11 +93,7 @@ typealias Peg = String
         elapsedTime = .zero
     }
 
-    /// Makes attempt to guess `masterCode`.
-    ///
-    /// Returns `true` if current `guess` doesn't contains `Code.missingPeg`;
-    /// otherwise returns `false`.
-    /// When returns `true` remembers and save `guess` to `self.attempts`.
+    /// Commits the current guess when it is complete and unique.
     func attemptGuess() -> Bool {
         guard !guess.pegs.contains(Code.missingPeg) else {
             return false
@@ -148,19 +116,14 @@ typealias Peg = String
         return true
     }
     
-    /// Sets `startTime` to `Date.now` if game isn't over.
-    ///
-    /// Use this method on view appear to updating timer.
+    /// Starts timing the current session if the game is active.
     func start() {
         if !isOver {
             startTime = Date.now
         }
     }
     
-    /// Finishes current session game.
-    ///
-    /// Updates `elapsedTime`;
-    /// sets `startTime` and `endTime` to `nil`.
+    /// Finishes the current session and updates `elapsedTime`.
     func finish() {
         if let startTime {
             elapsedTime += (endTime ?? Date.now).timeIntervalSince(startTime)
@@ -169,18 +132,14 @@ typealias Peg = String
         endTime = nil
     }
     
-    /// Sets `peg` `at` `index` in current `guess`.
+    /// Sets `peg` at `index` in the current guess.
     func setGuessPeg(_ peg: Peg, at index: Int) {
         guard guess.pegs.indices.contains(index) else { return }
         guess.pegs[index] = peg
     }
 
     // MARK: - For Testing or Preview only
-    /// Makes attempt to guess `masterCode`.
-    ///
-    /// Returns `true` if `code` length equal to `codeLength`;
-    /// otherwise returns `false`.
-    /// When returns `true` remembers `code` to `self.attempts` and clears `guess`.
+    /// Replaces the current guess with `word` and submits it.
     func attemptGuess(word: String) -> Bool {
         guard word.count == codeLength else {
             return false
@@ -189,7 +148,7 @@ typealias Peg = String
         return attemptGuess()
     }
     
-    /// Calls `generateWord` `count` times and make attempts.
+    /// Repeats `generateWord` up to `count` times and submits each result.
     func attemptGuess(count: Int, generateWord: () -> String?) {
         for _ in 0..<count {
             if let word = generateWord() {
@@ -202,10 +161,7 @@ typealias Peg = String
 
 
 extension WordGuesser: Comparable {
-    /// Compares two `WordGuesser` games by `lastAttemptTime`.
-    ///
-    /// - Returns `true` if `lhs` last attempt was after `rhs` last attempt;
-    /// `nils` goes first.
+    /// Returns whether `lhs` should sort before `rhs`.
     static func < (lhs: WordGuesser, rhs: WordGuesser) -> Bool {
         switch (lhs.lastAttemptTime, rhs.lastAttemptTime) {
         case (nil, nil):

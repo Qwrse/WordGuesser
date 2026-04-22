@@ -8,21 +8,22 @@
 import SwiftUI
 
 
+/// Environment access to the shared UI preferences.
 extension EnvironmentValues {
-    /// The UI preferences.
+    /// The shared UI preferences.
     @Entry var preferences = Preferences.shared
 }
 
-/// `Peg` shape used in UI.
+/// A shape style used to render pegs.
 enum PegShape: String, CaseIterable {
-    /// `Circle` shape.
+    /// A circular peg.
     case circle = "Circle"
-    /// `RoundedRectangle` shape with corner radius 10.
+    /// A rounded rectangle peg.
     case roundedRectangle = "Rounded rectangle"
-    /// `Diamond` shape.
+    /// A diamond peg.
     case diamond = "Diamond"
 
-    /// Access shape as a `View`.
+    /// A view that draws the peg shape.
     @ViewBuilder
     var shape: some View {
         switch self {
@@ -36,62 +37,60 @@ enum PegShape: String, CaseIterable {
     }
 }
 
-/// User preferences to play the game.
+/// Shared UI preferences for the game.
 @Observable class Preferences {
-    /// The color for `Match.exact`.
+    /// The color for exact matches.
     var exact: Color = .green
-    /// The color for `Match.inexact`.
+    /// The color for inexact matches.
     var inexact: Color = .yellow
-    /// The color for `Match.nomatch`.
+    /// The color for non-matching pegs.
     var nomatch: Color = .graySelection
-    /// The shape of pegs in a `Code`.
-    var peg: PegShape = .circle
+    /// The shape used for pegs.
+    var pegShape: PegShape = .circle
     
-    /// The unique instance of `Preferences`.
+    /// The shared preference store.
     static var shared = Preferences()
     
-    /// Creates default `Preferences`.
+    /// Creates the default preferences and loads persisted values.
     private init() {
         load()
     }
     
-    /// Saves preferences to `UserDefaults`.
+    /// Saves the current preferences to `UserDefaults`.
     func save() {
         let defaults = UserDefaults.standard
         defaults.setColor(exact, forKey: "exact")
         defaults.setColor(inexact, forKey: "inexact")
         defaults.setColor(nomatch, forKey: "nomatch")
-        defaults.set(peg.rawValue, forKey: "peg")
+        defaults.set(pegShape.rawValue, forKey: "peg")
     }
     
-    /// Loads preferences from `UserDefaults` and updates `self`.
+    /// Loads persisted preferences into `self`.
     func load() {
         let defaults = UserDefaults.standard
         if let color = defaults.color(forKey: "exact") { exact = color }
         if let color = defaults.color(forKey: "inexact") { inexact = color }
         if let color = defaults.color(forKey: "nomatch") { nomatch = color }
-        if let pegRawValue = defaults.string(forKey: "peg"),
-           let peg = PegShape(rawValue: pegRawValue)
+        if let pegShapeRawValue = defaults.string(forKey: "peg"),
+           let pegShape = PegShape(rawValue: pegShapeRawValue)
         {
-            self.peg = peg
+            self.pegShape = pegShape
         }
     }
 }
 
 // MARK: - UserDefaults access Color Extensions
 extension UserDefaults {
-    /// Sets the color of the specified key to a property list object.
+    /// Stores `value` as a hex string for `key`.
     func setColor(_ value: Color, forKey key: String) {
-        print("Set \(value.hex) for key \(key)")
         set(value.hex, forKey: key)
     }
     
-    /// Returns the color associated with the specified key.
+    /// Returns the color stored for `key`.
     func color(forKey key: String) -> Color? {
         guard let hex = string(forKey: key) else {
             return nil
         }
-        print("Load \(hex) from key \(key)")
         return Color(hex: hex)
     }
 }

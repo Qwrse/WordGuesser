@@ -8,27 +8,24 @@
 import Foundation
 import SwiftData
 
-/// The sequence of `Peg`s.
+/// A persisted sequence of pegs used in a game.
 @Model class Code {
-    /// The `Kind` of current `Code`.
+    /// The stored representation of `kind`.
     var _kind: String = Kind.unknown.description
-    /// The sequence of `Peg`s in current `Code`.
+    /// The stored peg sequence.
     var _pegs: [Peg]
-    /// The time the code was created.
+    /// The creation date of the code.
     var timestamp = Date.now
-    /// The word in code.
-    ///
-    /// Equals to pegs.joined().
-    /// It's stored property, due this value was stored in database.
+    /// The stored word representation of `_pegs`.
     var _word: String
     
-    /// Access `Kind` of current code.
+    /// The semantic role of the code.
     var kind: Kind {
         get { Kind(_kind) }
         set { _kind = newValue.description }
     }
     
-    /// Access array of pegs in the code.
+    /// The peg sequence.
     var pegs: [Peg] {
         get { _pegs }
         set {
@@ -37,7 +34,7 @@ import SwiftData
         }
     }
     
-    /// Access word in the code.
+    /// The peg sequence joined as a word.
     var word: String {
         get { _word }
         set {
@@ -46,29 +43,27 @@ import SwiftData
         }
     }
     
-    /// Creates code with `Kind` and pegs.
+    /// Creates a code with `kind` and `pegs`.
     init(kind: Kind, pegs: [Peg]) {
         _kind = kind.description
         _pegs = pegs
         _word = pegs.joined()
     }
     
-    /// Creates `Code` with given `kind` and `length`, filled `Code.missingPeg`.
+    /// Creates a code filled with `missingPeg`.
     convenience init(kind: Kind, length: Int) {
         self.init(kind: kind, pegs: Array(repeating: Code.missingPeg, count: length))
     }
 
-    /// Creates `Code` from string `word`.
+    /// Creates a code from `word`.
     convenience init(kind: Kind, word: String) {
         self.init(kind: kind, pegs: word.map { String($0) })
     }
 
-    /// `Peg` which describes no choice.
+    /// The placeholder used for an empty peg.
     static let missingPeg: Peg = ""
     
-    /// Generate `Code` with random pegs from `pegChoices`.
-    ///
-    /// Changes `pegs` to valid English word or replace `pegs` to `Code.missingPeg`.
+    /// Replaces the code with a random valid word of the current length.
     func randomize(from pegChoices: [Peg]) {
         if let word = Words.shared.random(length: pegs.count) {
             for (index, character) in word.enumerated() {
@@ -81,7 +76,7 @@ import SwiftData
         }
     }
     
-    /// Access whether `Code` should be hidden.
+    /// A Boolean value that indicates whether the code should be hidden.
     var isHidden: Bool {
         switch kind {
         case .master(let isHidden): return isHidden
@@ -89,12 +84,12 @@ import SwiftData
         }
     }
     
-    /// Resets all `pegs` to `missingPeg`.
+    /// Replaces every peg with `missingPeg`.
     func reset() {
         pegs = Array(repeating: Code.missingPeg, count: pegs.count)
     }
     
-    /// Access matches for `kind` `attempt` and `nil` for another kinds.
+    /// The stored matches when the code represents an attempt.
     var matches: [Match]? {
         switch kind {
         case .attempt(let matches): return matches
@@ -102,7 +97,7 @@ import SwiftData
         }
     }
 
-    /// Compares current code `against` `otherCode`.
+    /// Returns the per-peg matches against `otherCode`.
     func match(against otherCode: Code) -> [Match] {
         var pegsToMatch = otherCode.pegs
         

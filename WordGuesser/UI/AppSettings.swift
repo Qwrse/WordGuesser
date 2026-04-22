@@ -7,10 +7,10 @@
 
 import SwiftUI
 
-/// The sheet with settings for the application.
+/// A view that edits shared application settings.
 struct AppSettings: View {
     // MARK: Data Shared with Me
-    /// The UI preferences.
+    /// The shared UI preferences.
     @Bindable var preferences = Preferences.shared
 
     // MARK: - Body
@@ -19,7 +19,7 @@ struct AppSettings: View {
             ColorPicker("Exact color", selection: $preferences.exact, supportsOpacity: false)
             ColorPicker("Inexact color", selection: $preferences.inexact, supportsOpacity: false)
             ColorPicker("No match color", selection: $preferences.nomatch, supportsOpacity: false)
-            Picker("Peg shape", selection: $preferences.peg) {
+            Picker("Peg shape", selection: $preferences.pegShape) {
                 ForEach(PegShape.allCases, id: \.self) { shape in
                     Text(shape.rawValue).tag(shape)
                 }

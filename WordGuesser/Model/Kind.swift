@@ -7,55 +7,46 @@
 
 import Foundation
 
-/// Kind of `Code`.
-///
-/// Kind has also string representation. There are formats for all cases
-/// of `Kind`:
-/// - .master: "master".
-/// - .guess: "guess".
-/// - .attempt: "attempts(match1.rawValue,match2.rawValue,...)" without spaces and comma at the end.
-/// - .unknown: "unknown".
+/// A semantic role for a `Code` value.
 enum Kind: Equatable, CustomStringConvertible {
-    /// The secret `Code`.
+    /// A master code, optionally hidden from the player.
     case master(isHidden: Bool)
-    /// Current attempt's `Code`.
+    /// The editable code for the current guess.
     case guess
-    /// Previous attempt.
+    /// A previous guess together with its match result.
     case attempt([Match])
-    /// Unknown kind.
+    /// An unrecognized kind loaded from storage.
     case unknown
     
-    /// Access string representation of `self`.
+    /// A stable string representation used for persistence.
     var description: String {
         switch self {
         case .master(let isHidden):
             return "master(\(isHidden))"
         case .guess:
             return "guess"
-        case .attempt(let attempts):
-            let attemptsStr = attempts.map { $0.rawValue }.joined(separator: ",")
-            return "attempt(\(attemptsStr))"
+        case .attempt(let matches):
+            let rawMatches = matches.map { $0.rawValue }.joined(separator: ",")
+            return "attempt(\(rawMatches))"
         case .unknown:
             return "unknown"
         }
     }
     
-    /// Creates `Kind` from string representation.
+    /// Creates a kind from its persisted string representation.
     init(_ string: String) {
         self = if string == "guess" {
             .guess
         } else if let isHidden: Bool = Kind.argument(from: string, prefix: "master(") {
             .master(isHidden: isHidden)
-        } else if let attempts: [Match] = Kind.argument(from: string, prefix: "attempt(") {
-            .attempt(attempts)
+        } else if let matches: [Match] = Kind.argument(from: string, prefix: "attempt(") {
+            .attempt(matches)
         } else {
             .unknown
         }
     }
 
-    /// Tries to create `T` from string representation.
-    ///
-    /// The string should has the format "prefix(argument)".
+    /// Returns the argument stored inside a persisted kind string.
     private static func argument<T: HasStringFallibleInitializer>(from string: String, prefix: String) -> T? {
         guard string.hasPrefix(prefix), string.hasSuffix(")") else {
             return nil
@@ -66,17 +57,15 @@ enum Kind: Equatable, CustomStringConvertible {
     }
 }
 
-/// The protocol for types which has fallible initialiser from `String`.
+/// A type that can be created from a stored string representation.
 private protocol HasStringFallibleInitializer {
-    /// Tries to create type from `String`.
+    /// Creates a value from `string` when possible.
     init?(_ string: String)
 }
 
 
 extension Bool: HasStringFallibleInitializer {
-    /// Tries to creates `Bool` from `String`.
-    ///
-    /// Converts "true" to true and "false" to false.
+    /// Creates a Boolean from `"true"` or `"false"`.
     init?(_ string: String) {
         switch string {
         case "true":
@@ -90,11 +79,7 @@ extension Bool: HasStringFallibleInitializer {
 }
 
 extension Array: HasStringFallibleInitializer where Element: HasStringFallibleInitializer {
-    /// Tries to create `Array` from `String`.
-    ///
-    /// String should be in format "arg1,arg2,arg3,..." without spaces and comma at the end.
-    ///
-    /// The result is succeed if all arguments successful converted to `Element`.
+    /// Creates an array from a comma-separated string.
     init?(_ string: String) {
         let splits = string.split(separator: ",")
         let convertedElements = splits.compactMap { Element(String($0)) }
@@ -107,7 +92,7 @@ extension Array: HasStringFallibleInitializer where Element: HasStringFallibleIn
 }
 
 extension Match: HasStringFallibleInitializer {
-    /// Tries to create `Match` from `String`.
+    /// Creates a match from its raw value.
     init?(_ string: String) {
         for option in Match.allCases {
             if string == option.rawValue {

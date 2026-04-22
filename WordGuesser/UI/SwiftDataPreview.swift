@@ -8,8 +8,9 @@
 import SwiftUI
 import SwiftData
 
-/// The preview modifier creates `ModelContainer` for SwiftData.
+/// A preview modifier that injects an in-memory SwiftData container.
 struct SwiftDataPreview: PreviewModifier {
+    /// Creates the shared in-memory preview container.
     static func makeSharedContext() async throws -> ModelContainer {
         let container = try ModelContainer(
             for: WordGuesser.self,
@@ -18,12 +19,13 @@ struct SwiftDataPreview: PreviewModifier {
         return container
     }
     
+    /// Wraps `content` in the preview model container.
     func body(content: Content, context: ModelContainer) -> some View {
         content.modelContainer(context)
     }
 }
 
 extension PreviewTrait<Preview.ViewTraits> {
-    /// The preview trait for `SwiftDataPreview`.
+    /// A preview trait that installs `SwiftDataPreview`.
     @MainActor static var swiftData: Self = .modifier(SwiftDataPreview())
 }

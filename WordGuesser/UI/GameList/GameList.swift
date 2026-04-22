@@ -8,54 +8,47 @@
 import SwiftUI
 import SwiftData
 
-/// The `View` for array of `WordGuesser` games.
-///
-/// Adds some sample games on first load.
+/// A view that presents the saved games.
 struct GameList: View {
     // MARK: Data In
-    /// The most common words in English.
+    /// The shared word store.
     @Environment(\.words) private var words
     /// The SwiftData model context.
     @Environment(\.modelContext) private var modelContext
     
     // MARK: Data Shared by Me
-    /// The selected game.
-    ///
-    /// User can play in selected game.
+    /// The currently selected game.
     @Binding var selection: WordGuesser?
-    /// The list of all games in app.
+    /// The saved games that match the current filter.
     @Query private var games: [WordGuesser] = []
 
     // MARK: Data Owned by Me
-    /// The value indicating whether length chooser should open for creating new game.
-    @State private var showLengthChooser: Bool = false
+    /// A Boolean value that indicates whether the length chooser is presented.
+    @State private var isShowingLengthChooser = false
 
-    /// Creates `GameList` view from searched games.
-    ///
-    /// The game has searched if it has previous attempt or current guess
-    /// which contains searched `substring`.
-    init(filter: FilterOption = .all, attemptContains substring: String = "", selection: Binding<WordGuesser?>) {
+    /// Creates a game list filtered by completion state and text.
+    init(filter: FilterOption = .all, attemptContaining searchText: String = "", selection: Binding<WordGuesser?>) {
         _selection = selection
-        let substring = substring.uppercased()
+        let searchText = searchText.uppercased()
         let isCompletedOnly = filter == .completed
         let predicate = #Predicate<WordGuesser> { game in
             (!isCompletedOnly || game.isOver) && (
-                substring.isEmpty ||
-                game._attempts.contains { $0._word.contains(substring) } ||
-                game.guess._word.contains(substring)
+                searchText.isEmpty ||
+                game._attempts.contains { $0._word.contains(searchText) } ||
+                game.guess._word.contains(searchText)
             )
         }
         _games = Query(filter: predicate)
     }
     
-    /// The filter option determines the games to show.
+    /// A filter that determines which games appear in the list.
     enum FilterOption: CaseIterable {
-        /// Show all games.
+        /// Shows every game.
         case all
-        /// Show completed games.
+        /// Shows only completed games.
         case completed
         
-        /// The title of option in the UI.
+        /// The title shown in the picker.
         var title: String {
             switch self {
             case .all: "All games"
@@ -91,24 +84,24 @@ struct GameList: View {
         }
         .onChange(of: words.count, initial: true) {
             if words.count > 0 {
-                addSamples()
+                insertSampleGamesIfNeeded()
             }
         }
     }
     
-    /// The button to create new `WordGuesser` game.
+    /// A button that presents the new-game length chooser.
     var newGameButton: some View {
         Button("New game", systemImage: "plus") {
             withAnimation {
-                showLengthChooser = true
+                isShowingLengthChooser = true
             }
         }
-        .sheet(isPresented: $showLengthChooser) {
+        .sheet(isPresented: $isShowingLengthChooser) {
             lengthChooser
         }
     }
     
-    /// The sheet lets choose the length of codes in the new game.
+    /// A sheet that lets the player choose a code length.
     var lengthChooser: some View {
         VStack {
             Text("Select code length")
@@ -118,7 +111,7 @@ struct GameList: View {
                     Button {
                         let newGame = WordGuesser(codeLength: length)
                         modelContext.insert(newGame)
-                        showLengthChooser = false
+                        isShowingLengthChooser = false
                     } label: {
                         Text(String(length))
                     }
@@ -127,7 +120,7 @@ struct GameList: View {
         }
     }
     
-    /// The button which opens `AppSettings`.
+    /// A link that opens the app settings.
     var settingsButton: some View {
         NavigationLink {
             AppSettings()
@@ -137,8 +130,8 @@ struct GameList: View {
         }
     }
     
-    /// Adds sample games if there are no one.
-    func addSamples() {
+    /// Inserts sample games when the store is empty.
+    func insertSampleGamesIfNeeded() {
         let fetchDescriptor = FetchDescriptor<WordGuesser>()
         if let result = try? modelContext.fetchCount(fetchDescriptor) {
             print("result: \(result)")

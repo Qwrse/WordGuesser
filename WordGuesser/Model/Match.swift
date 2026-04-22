@@ -7,17 +7,17 @@
 
 import SwiftUI
 
-/// The match value for `Peg`.
+/// A comparison result for a peg.
 enum Match: String, CaseIterable {
-    /// The exact match.
+    /// A peg that does not occur in the target word.
     case nomatch
-    /// The inexact match, `Peg` is in a word, but on another position.
+    /// A peg in the correct position.
     case exact
-    /// `Peg` doesn't occurs in compared word.
+    /// A peg that occurs in the target word at another position.
     case inexact
     
-    /// Access `color` which used in the UI.
-    var associatedColor: Color {
+    /// The color used to render the match.
+    var color: Color {
         let preferences = Preferences.shared
         return switch self {
         case .nomatch:
@@ -29,10 +29,8 @@ enum Match: String, CaseIterable {
         }
     }
     
-    /// Returns position in sorted order `nil`, `.nomatch`, `.inexact`, `.exact`.
-    ///
-    /// `Nil` represents there was no attempts for `Peg`.
-    static func orderPosition(_ match: Match?) -> Int {
+    /// Returns the ranking used to compare match quality.
+    static func rank(of match: Match?) -> Int {
         guard let match else {
             return 0
         }
@@ -46,11 +44,12 @@ enum Match: String, CaseIterable {
         }
     }
     
-    static func bestMatch(_ match1: Match?, _ match2: Match?) -> Match? {
-        if orderPosition(match1) > orderPosition(match2) {
-            match1
+    /// Returns the better of two optional matches.
+    static func best(of lhs: Match?, and rhs: Match?) -> Match? {
+        if rank(of: lhs) > rank(of: rhs) {
+            lhs
         } else {
-            match2
+            rhs
         }
     }
 }

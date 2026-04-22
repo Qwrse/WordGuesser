@@ -7,33 +7,32 @@
 
 import SwiftUI
 
-/// A `View` which draws `List` of games `WordGuesser`.
-///
-/// Holds all games as `@State` in memory.
+/// A view that lets the player choose and open a game.
 struct GameChooser: View {
     // MARK: Data Owned by Me
-    /// All games in app.
-    @State private var selection: WordGuesser?
-    /// The search input from user.
-    @State private var search: String = ""
-    @State private var filterOption = GameList.FilterOption.all
+    /// The selected game.
+    @State private var selectedGame: WordGuesser?
+    /// The current search text.
+    @State private var searchText = ""
+    /// The active list filter.
+    @State private var filter = GameList.FilterOption.all
 
     // MARK: - Body
     var body: some View {
         NavigationSplitView(columnVisibility: .constant(.all)) {
-            Picker("Filter", selection: $filterOption) {
+            Picker("Filter", selection: $filter) {
                 ForEach(GameList.FilterOption.allCases, id: \.self) { option in
                     Text(option.title)
                 }
             }
             .pickerStyle(.segmented)
-            GameList(filter: filterOption, attemptContains: search, selection: $selection)
-                .animation(.default, value: filterOption)
+            GameList(filter: filter, attemptContaining: searchText, selection: $selectedGame)
+                .animation(.default, value: filter)
                 .navigationTitle("Word Guesser")
-                .searchable(text: $search)
+                .searchable(text: $searchText)
         } detail: {
-            if let selection {
-                WordGuesserView(game: selection)
+            if let selectedGame {
+                WordGuesserView(game: selectedGame)
                     .navigationTitle("Guess master code!")
                     .navigationBarTitleDisplayMode(.inline)
             } else {

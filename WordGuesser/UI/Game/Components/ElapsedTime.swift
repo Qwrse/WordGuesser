@@ -7,20 +7,20 @@
 
 import SwiftUI
 
-/// The `View` draws total time user has played the game.
+/// A view that formats the elapsed play time.
 struct ElapsedTime: View {
     // MARK: Data In
-    /// The start time of last session.
+    /// The start date of the active session.
     let startTime: Date?
-    /// The end time of last session.
+    /// The end date of the last session.
     let endTime: Date?
-    /// The summary of time user played the game excluding last session.
-    let timeSpent: TimeInterval
+    /// The accumulated play time before the current session.
+    let elapsedTime: TimeInterval
     
     // MARK: - Body
     var body: some View {
         if let startTime {
-            let correctedStart = startTime.addingTimeInterval(-timeSpent)
+            let correctedStart = startTime.addingTimeInterval(-elapsedTime)
             if let endTime {
                 Text(endTime, format: .offset(to: correctedStart, allowedFields: [.minute, .second]))
             } else {
@@ -28,12 +28,12 @@ struct ElapsedTime: View {
                 Text(now, format: .offset(to: correctedStart, allowedFields: [.minute, .second]))
             }
         } else {
-            Text(Duration.seconds(timeSpent), format: .time(pattern: .minuteSecond))
+            Text(Duration.seconds(elapsedTime), format: .time(pattern: .minuteSecond))
         }
     }
 }
 
 #Preview {
-    ElapsedTime(startTime: Date.now, endTime: nil, timeSpent: 0)
-    ElapsedTime(startTime: nil, endTime: nil, timeSpent: 100)
+    ElapsedTime(startTime: Date.now, endTime: nil, elapsedTime: 0)
+    ElapsedTime(startTime: nil, endTime: nil, elapsedTime: 100)
 }

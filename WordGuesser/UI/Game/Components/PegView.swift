@@ -8,16 +8,16 @@
 import SwiftUI
 
 
-/// The `Peg` view.
+/// A view that renders a single peg.
 struct PegView: View {
     // MARK: Data In
-    /// The input `Peg`.
+    /// The peg text to display.
     let peg: Peg
-    /// UI preferences.
-    @Environment(\.preferences) var preferences
+    /// The shared UI preferences.
+    @Environment(\.preferences) private var preferences
 
     // MARK: Data In
-    /// The `Match` current `peg` against correct `peg`.
+    /// The match result for the peg.
     let match: Match?
 
     // MARK: - Body
@@ -31,22 +31,22 @@ struct PegView: View {
                 if peg == Code.missingPeg {
                     pegBorder
                 }
-                let backgroundColor: Color = match?.associatedColor ?? .clear
+                let backgroundColor: Color = match?.color ?? .clear
                 pegShape.foregroundStyle(backgroundColor)
             }
             .contentShape(Circle())
             .aspectRatio(1, contentMode: .fit)
     }
     
-    /// The shape of peg.
+    /// The preferred peg shape.
     var pegShape: some View {
-        preferences.peg.shape
+        preferences.pegShape.shape
     }
     
-    /// The border of preferred peg shape.
+    /// The border drawn for an empty peg.
     @ViewBuilder
     var pegBorder: some View {
-        switch preferences.peg {
+        switch preferences.pegShape {
         case .circle:
             Circle().stroke(Color.gray)
         case .roundedRectangle:
@@ -57,11 +57,9 @@ struct PegView: View {
     }
 }
 
-/// The settings for peg view.
+/// Layout values for `PegView`.
 struct PegSettings {
-    /// The corner radius for `Peg` shape in case when it is `Preferences.roundedRectangle`.
-    ///
-    /// If preferred shape is `Circle` the value is ignored.
+    /// The corner radius used for rounded rectangle pegs.
     static let cornerRadius: CGFloat = 10
 }
 

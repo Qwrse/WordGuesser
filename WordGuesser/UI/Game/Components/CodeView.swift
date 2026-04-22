@@ -7,58 +7,48 @@
 
 import SwiftUI
 
-/// The `Code` view.
-///
-/// Supports all `Code` `Kind`s.
-/// Details:
-/// `Code.Kind.guess`: highlights chosen `Peg`.
-/// `Code.Kind.attempt`: highlights exact, inexact and incorrect `Matches`.
-/// `Code.Kind.master`: hide code behind `RoundedRectangles`.
-/// `Code.Kind.unknown`: draws only `Pegs`.
+/// A view that renders a `Code`.
 struct CodeView: View {
     // MARK: Data In
-    /// The `Code`.
+    /// The code to display.
     let code: Code
-    /// The user preferences.
-    @Environment(\.preferences) var preferences
+    /// The shared UI preferences.
+    @Environment(\.preferences) private var preferences
     
     // MARK: Data Shared with Me
-    /// The selection for `Code.Kind.guess` kind.
+    /// The selected peg index for guess codes.
     @Binding var selection: Int
     
     // MARK: Data Owned by Me
-    /// The namespace for matched geometry effect.
+    /// The namespace used by the selection highlight animation.
     @Namespace private var selectionNamespace
     
-    /// Creates `CodeView` using `code` and optional `selection`.
-    ///
-    /// If `selection` is `nil`, selection will be 0.
+    /// Creates a code view for `code`.
     init(code: Code, selection: Binding<Int>? = nil) {
         self.code = code
         self._selection = selection ?? .constant(0)
     }
     
     // MARK: - Body
-    
     var body: some View {
         HStack(spacing: 0) {
             ForEach(code.pegs.indices, id: \.self) { index in
                 PegView(peg: code.pegs[index], match: code.matches?[safe: index])
                     .padding(Selection.border)
-                    .background {  // highlighting selected peg
+                    .background {
                         if selection == index, code.kind == .guess {
-                            preferences.peg.shape
+                            preferences.pegShape.shape
                                 .foregroundStyle(Selection.color)
                                 .matchedGeometryEffect(id: "selection", in: selectionNamespace)
                         }
                     }
-                    .overlay {  // hidden curve
-                        preferences.peg.shape
+                    .overlay {
+                        preferences.pegShape.shape
                             .foregroundStyle(code.isHidden ? Color.gray : .clear)
-                            .opacity(0.5)  // make opacity = 1 for production
+                            .opacity(0.5)
                             .padding(Hiding.border)
                     }
-                    .onTapGesture {  // change selection
+                    .onTapGesture {
                         print("clicked \(index)")
                         if code.kind == .guess {
                             withAnimation {
@@ -70,19 +60,19 @@ struct CodeView: View {
         }
     }
     
-    /// The selection settings view.
+    /// Layout values for the selection highlight.
     struct Selection {
-        /// The padding around selected `Peg`.
+        /// The padding around the selected peg.
         static let border: CGFloat = 5
-        /// The corner radius for selected `shape` at the background.
+        /// The corner radius for the highlight.
         static let cornerRadius: CGFloat = PegSettings.cornerRadius
-        /// The color of selected `shape` at the background.
+        /// The highlight color.
         static let color: Color = Color.graySelection
     }
     
-    /// The hiding curve settings view.
+    /// Layout values for the hidden-code overlay.
     struct Hiding {
-        /// The padding around hiding `Peg`.
+        /// The padding around the hidden overlay.
         static let border: CGFloat = 5
     }
 }
@@ -92,7 +82,7 @@ struct CodeView: View {
 // Retrieved 2026-01-29, License - CC BY-SA 4.0
 
 extension Collection {
-    // Returns the element at the specified index if it is within bounds, otherwise nil.
+    /// Returns the element at `index` when it is within bounds.
     subscript(safe index: Index) -> Element? {
         indices.contains(index) ? self[index] : nil
     }
