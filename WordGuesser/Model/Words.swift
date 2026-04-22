@@ -70,12 +70,6 @@ class Words {
 extension UITextChecker {
     /// Returns a Boolean value that indicates whether `word` is an English word.
     func isWord(_ word: String) -> Bool {
-        rangeOfMisspelledWord(
-            in: word,
-            range: NSRange(location: 0, length: word.utf16.count),
-            startingAt: 0,
-            wrap: false,
-            language: "en_US"
-        ).location == NSNotFound
+        Words.shared.contains(word)
     }
 }
