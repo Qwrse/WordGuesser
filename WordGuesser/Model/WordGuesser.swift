@@ -88,6 +88,8 @@ typealias Peg = String
         masterCode.randomize(from: pegChoices)
         attempts = []
         guess = Code(kind: .guess, length: length)
+        isOver = false
+        lastAttemptTime = nil
         startTime = Date.now
         endTime = nil
         elapsedTime = .zero
